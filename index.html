@@ -444,21 +444,30 @@ const LABELS = [
   { t:'SGLT2', p:[KX - 1.35, 0.2, 0.9], c:'tr', g:['kid'] },
   { t:'SGLT1', p:[KX + 1.6, 0.2, 0.9], c:'tr', g:['kid'] },
   { t:'Circulation sanguine', p:[KX - 1.2, -1.35, 0.6], g:['kid'] },
-  { t:'Urines (glucosurie)', p:[KX + 4.35, -0.35, 0.9], g:['kid'] }
+  { t:'Urines (glucosurie)', p:[KX + 4.35, -2.55, 0.9], g:['kid'] }
 ].map(l => { const el = document.createElement('div'); el.className = 'lbl' + (l.c ? ' ' + l.c : ''); el.textContent = l.t; labelsEl.appendChild(el); return Object.assign(l, { el, v:new THREE.Vector3(...l.p) }); });
 const tmp = new THREE.Vector3();
 function placeLabels(w, h){
+  const placed = [];
   for (const l of LABELS){
     const on = l.g.includes(step);
     tmp.copy(l.v).project(camera);
     const vis = on && tmp.z < 1 && Math.abs(tmp.x) < 1.2 && Math.abs(tmp.y) < 1.2;
     l.el.style.opacity = vis ? 1 : 0;
-    if (vis){
-      const lw = l.el.offsetWidth, lh = l.el.offsetHeight;
-      const x = Math.min(w - lw / 2 - 4, Math.max(lw / 2 + 4, (tmp.x + 1) / 2 * w));
-      const y = Math.min(h - lh / 2 - 4, Math.max(lh / 2 + 4, (1 - tmp.y) / 2 * h));
-      l.el.style.transform = `translate(${x}px, ${y}px) translate(-50%,-50%)`;
+    if (!vis) continue;
+    const lw = l.el.offsetWidth, lh = l.el.offsetHeight;
+    const clampX = v => Math.min(w - lw / 2 - 4, Math.max(lw / 2 + 4, v));
+    const clampY = v => Math.min(h - lh / 2 - 4, Math.max(lh / 2 + 4, v));
+    const x = clampX((tmp.x + 1) / 2 * w), y0 = clampY((1 - tmp.y) / 2 * h);
+    // Évite les chevauchements : on décale l'étiquette verticalement (bas puis haut) jusqu'à trouver une place libre.
+    const hits = y => placed.some(r => Math.abs(r.x - x) < (r.w + lw) / 2 + 4 && Math.abs(r.y - y) < (r.h + lh) / 2 + 3);
+    let y = y0;
+    for (let k = 1; k <= 12 && hits(y); k++){
+      const dn = clampY(y0 + k * (lh / 2 + 2)), up = clampY(y0 - k * (lh / 2 + 2));
+      if (!hits(dn)){ y = dn; break; } if (!hits(up)){ y = up; break; }
     }
+    placed.push({ x, y, w:lw, h:lh });
+    l.el.style.transform = `translate(${x}px, ${y}px) translate(-50%,-50%)`;
   }
 }
 
