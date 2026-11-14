@@ -1,0 +1,523 @@
+<title>Punisucrophage en 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout : bandeau produit, scène 3D pleine largeur, étapes en onglets, puis récapitulatif des conséquences. */
+:root{
+  --bg:#f5f8f3; --surface:#ffffff; --ink:#14251a; --muted:#566a5c; --line:#d6e2d3;
+  --green:#1c6a39; --green-2:#4a9a50; --tint:#e6f1e3; --on-green:#ffffff;
+  --stage:#eef4ec; --plate:#dfe9db; --violet:#7651ad; --amber:#d9962c; --red:#cc352d;
+  --font-d:'Archivo', 'Arial Narrow', Arial, sans-serif;
+  --font-b:'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1611; --surface:#152019; --ink:#e5eee4; --muted:#9bb0a0; --line:#28392d;
+  --green:#6fc27c; --green-2:#93d69c; --tint:#1a2a1f; --on-green:#0e1611;
+  --stage:#111b14; --plate:#1d2b21; --violet:#b597e6; --amber:#eab055; --red:#ff6b60; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e1611; --surface:#152019; --ink:#e5eee4; --muted:#9bb0a0; --line:#28392d;
+  --green:#6fc27c; --green-2:#93d69c; --tint:#1a2a1f; --on-green:#0e1611;
+  --stage:#111b14; --plate:#1d2b21; --violet:#b597e6; --amber:#eab055; --red:#ff6b60; color-scheme:dark }
+
+body{ background:var(--bg); color:var(--ink); font-family:var(--font-b); font-size:15px; line-height:1.55 }
+.wrap{ max-width:1180px; margin:0 auto; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)) }
+header.top{ padding-block:22px 14px }
+.brand{ display:flex; align-items:center; gap:8px; font-family:var(--font-d); font-weight:700; color:var(--green); font-size:14px; letter-spacing:.02em }
+.brand svg{ width:22px; height:22px }
+h1{ font-family:var(--font-d); font-weight:800; font-size:clamp(30px, 6vw, 52px); line-height:1; letter-spacing:-.01em; color:var(--green); margin:10px 0 6px; text-wrap:balance }
+h1 sup{ font-size:.38em; vertical-align:super }
+.kicker{ display:inline-block; background:var(--green); color:var(--on-green); font-family:var(--font-d); font-weight:700; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; padding:5px 10px; border-radius:4px; margin:0 }
+.lede{ max-width:68ch; color:var(--ink); margin:12px 0 0; font-size:16px }
+
+.stage{ position:relative; height:clamp(380px, 64vh, 680px); border-radius:14px; overflow:hidden; background:var(--stage); border:1px solid var(--line) }
+.stage canvas{ display:block; width:100%; height:100%; touch-action:none; cursor:grab }
+.stage canvas:active{ cursor:grabbing }
+#labels{ position:absolute; inset:0; pointer-events:none; overflow:hidden }
+.lbl{ position:absolute; left:0; top:0; transform:translate(-50%,-50%); white-space:nowrap; font-size:12px; font-weight:600; color:var(--ink); background:color-mix(in srgb, var(--surface) 88%, transparent); border:1px solid var(--line); padding:3px 8px; border-radius:999px; transition:opacity .35s }
+.lbl.big{ font-family:var(--font-d); font-weight:700; font-size:13px; color:var(--green); border-color:color-mix(in srgb, var(--green) 40%, var(--line)) }
+.lbl.tr{ color:var(--amber); border-color:color-mix(in srgb, var(--amber) 45%, var(--line)); font-family:var(--font-d) }
+.lbl.drug{ background:var(--green); color:var(--on-green); border-color:var(--green); font-family:var(--font-d) }
+
+.hud{ position:absolute; top:12px; left:12px; right:12px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; pointer-events:none }
+.hud > *{ pointer-events:auto }
+.switch{ display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 12px 6px 6px; font:600 13px var(--font-b); color:var(--ink); cursor:pointer }
+.switch .knob{ width:38px; height:22px; border-radius:999px; background:var(--plate); position:relative; transition:background .25s; flex:none }
+.switch .knob::after{ content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:var(--surface); box-shadow:0 1px 2px rgba(0,0,0,.25); transition:transform .25s }
+.switch[aria-pressed="true"] .knob{ background:var(--green) }
+.switch[aria-pressed="true"] .knob::after{ transform:translateX(16px) }
+.switch:focus-visible, .tab:focus-visible, .play:focus-visible{ outline:2px solid var(--green); outline-offset:2px }
+.legend{ display:flex; gap:12px; flex-wrap:wrap; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:6px 10px; font-size:12px; color:var(--muted) }
+.legend span{ display:inline-flex; align-items:center; gap:6px }
+.dot{ width:10px; height:10px; border-radius:50%; display:inline-block }
+.hint{ position:absolute; right:12px; bottom:10px; font-size:11.5px; color:var(--muted); background:color-mix(in srgb, var(--surface) 80%, transparent); padding:2px 8px; border-radius:6px; pointer-events:none }
+
+.bar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:14px 0 0 }
+.tabs{ display:flex; gap:6px; flex-wrap:wrap; flex:1 1 auto; min-width:0 }
+.tab{ font:600 13.5px var(--font-b); color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer }
+.tab[aria-selected="true"]{ background:var(--tint); border-color:var(--green); color:var(--green) }
+.play{ font:600 13.5px var(--font-b); background:var(--green); color:var(--on-green); border:0; border-radius:8px; padding:9px 14px; cursor:pointer; display:inline-flex; gap:8px; align-items:center }
+
+.narr{ display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:24px; margin-top:18px; padding-block:18px; border-top:1px solid var(--line) }
+.narr h2{ font-family:var(--font-d); font-weight:700; font-size:22px; margin:0 0 4px; color:var(--ink); text-wrap:balance }
+.narr .tag{ font-family:var(--font-d); font-weight:700; color:var(--green); margin:0 0 8px; font-size:15px }
+.narr p{ margin:0 0 8px; max-width:62ch }
+.narr ul{ margin:0; padding-left:18px }
+.narr li{ margin:2px 0 }
+.box{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 14px; min-width:0 }
+.box h3{ font-family:var(--font-d); font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--green); margin:0 0 6px }
+
+.effects h2{ font-family:var(--font-d); font-size:18px; margin:6px 0 10px }
+.grid{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:10px }
+.card{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 10px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px; font-size:13px; font-weight:600; transition:border-color .3s, background .3s }
+.card .ic{ width:34px; height:34px; color:var(--green) }
+.card.lit{ border-color:var(--green); background:var(--tint) }
+footer{ margin-top:22px; padding-block:14px 26px; border-top:1px solid var(--line); color:var(--muted); font-size:12.5px }
+footer p{ margin:0 0 4px; max-width:90ch }
+
+@media (max-width:860px){ .grid{ grid-template-columns:repeat(3, minmax(0,1fr)) } .narr{ grid-template-columns:minmax(0,1fr) } }
+@media (max-width:480px){ .grid{ grid-template-columns:repeat(2, minmax(0,1fr)) } .legend{ display:none } .stage{ height:clamp(360px, 70vh, 560px) } }
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 15c0-5 4-8 10-8-1 6-4 10-9 10l-1-2z" fill="var(--bg)"/></svg>Laboratoires TBC</div>
+  <h1>PUNISUCROPHAGE<sup>®</sup></h1>
+  <p class="kicker">Mécanisme d'action · Inhibiteur naturel des transporteurs SGLT1/2</p>
+  <p class="lede">Punisucrophage<sup>®</sup> inhibe les transporteurs SGLT1 et SGLT2, réduisant l'absorption intestinale du glucose et favorisant son élimination rénale.</p>
+</div></header>
+
+<main class="wrap">
+  <section class="stage" id="stage" aria-label="Animation 3D du mécanisme d'action">
+    <canvas id="c"></canvas>
+    <div id="labels"></div>
+    <div class="hud">
+      <button class="switch" id="drug" type="button" aria-pressed="false"><span class="knob"></span><span id="drugTxt">Punisucrophage® : inactif</span></button>
+      <div class="legend" aria-hidden="true">
+        <span><i class="dot" style="background:var(--violet)"></i>Glucose</span>
+        <span><i class="dot" style="background:var(--amber)"></i>Transporteur SGLT</span>
+        <span><i class="dot" style="background:var(--green)"></i>Punisucrophage®</span>
+        <span><b style="color:var(--red)">✕</b>Transporteur inhibé</span>
+      </div>
+    </div>
+    <div class="hint">Faites glisser pour tourner · molette ou pincement pour zoomer</div>
+  </section>
+
+  <div class="bar">
+    <div class="tabs" role="tablist" aria-label="Étapes">
+      <button class="tab" role="tab" data-step="ov" id="tab-ov">Vue d'ensemble</button>
+      <button class="tab" role="tab" data-step="int" id="tab-int">Intestin – SGLT1</button>
+      <button class="tab" role="tab" data-step="kid" id="tab-kid">Rein – SGLT1 / SGLT2</button>
+      <button class="tab" role="tab" data-step="eff" id="tab-eff">Conséquences</button>
+    </div>
+    <button class="play" id="play" type="button"><span id="playIc">❚❚</span><span id="playTxt">Pause visite guidée</span></button>
+  </div>
+
+  <section class="narr" id="narr" aria-live="polite"></section>
+
+  <section class="effects">
+    <h2>Conséquences présentées dans la fiche</h2>
+    <div class="grid" id="grid">
+      <div class="card"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/><path d="M12 10v6m-2.5-2.5L12 16l2.5-2.5"/></svg>↓ Glycémie postprandiale</div>
+      <div class="card"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/><path d="M12 10v6m-2.5-2.5L12 16l2.5-2.5"/></svg>↓ Glycémie à jeun</div>
+      <div class="card"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 14V4a2 2 0 0 1 4 0v10a4 4 0 1 1-4 0z"/><path d="M12 9v7"/></svg>↓ HbA1c</div>
+      <div class="card"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/><path d="M12 16v-6m-2.5 2.5L12 10l2.5 2.5"/></svg>↑ Glucosurie</div>
+      <div class="card"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>Amélioration de la sensibilité à l'insuline</div>
+      <div class="card"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/><path d="M12 9v6M9 12h6"/></svg>Protection cardio-métabolique</div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Animation schématique à visée pédagogique. Les formes, proportions et quantités de particules ne représentent pas des données cliniques.</p>
+    <p>Textes repris de la fiche RCP Punisucrophage<sup>®</sup> (Laboratoires TBC) : mécanisme d'action, pharmacodynamie et classe pharmacothérapeutique. Document réservé aux professionnels de santé.</p>
+  </footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const stageEl = document.getElementById('stage');
+const canvas = document.getElementById('c');
+const labelsEl = document.getElementById('labels');
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+/* ---------- Textes (repris de la fiche RCP) ---------- */
+const STEPS = {
+  ov: { h:'Deux cibles : SGLT1 et SGLT2', tag:'Inhibiteur naturel des transporteurs SGLT1/2',
+        p:['Punisucrophage<sup>®</sup> inhibe les transporteurs SGLT1 et SGLT2, réduisant l\'absorption intestinale du glucose et favorisant son élimination rénale.',
+           'À gauche, l\'intestin (SGLT1). À droite, le rein (SGLT1 / SGLT2). Activez Punisucrophage<sup>®</sup> pour voir les transporteurs inhibés.'],
+        boxT:'Classe pharmacothérapeutique', box:'<p>Antidiabétique phytothérapeutique. Inhibiteur naturel des transporteurs sodium-glucose SGLT1 et SGLT2.</p>' },
+  int:{ h:'Intestin – SGLT1', tag:'↓ Absorption intestinale du glucose',
+        p:['Le glucose alimentaire (points violets) est absorbé par les entérocytes via le transporteur SGLT1, puis rejoint la circulation sanguine.',
+           'Punisucrophage<sup>®</sup> inhibe SGLT1 : une moindre part du glucose franchit la paroi intestinale.'],
+        boxT:'Pharmacodynamie', box:'<ul><li>Inhibition sélective du transporteur SGLT1 intestinal</li><li>Diminution de l\'absorption intestinale du glucose</li></ul>' },
+  kid:{ h:'Rein – SGLT1 / SGLT2', tag:'↑ Élimination rénale du glucose (Glucosurie)',
+        p:['Dans le tubule rénal, le glucose filtré est réabsorbé vers le sang par les transporteurs SGLT2 puis SGLT1.',
+           'Punisucrophage<sup>®</sup> inhibe ces transporteurs : davantage de glucose est éliminé dans les urines.'],
+        boxT:'Pharmacodynamie', box:'<ul><li>Inhibition sélective du transporteur SGLT2 rénal</li><li>Augmentation de l\'élimination urinaire du glucose</li></ul>' },
+  eff:{ h:'Conséquences', tag:'Réduction des pics glycémiques postprandiaux',
+        p:['Selon la fiche, la double inhibition SGLT1 / SGLT2 se traduit par :',
+           '↓ glycémie postprandiale, ↓ glycémie à jeun, ↓ HbA1c, ↑ glucosurie, amélioration de la sensibilité à l\'insuline, protection cardio-métabolique.'],
+        boxT:'Pharmacodynamie', box:'<ul><li>Diminution de l\'absorption intestinale du glucose</li><li>Augmentation de l\'élimination urinaire du glucose</li><li>Réduction des pics glycémiques postprandiaux</li></ul>' }
+};
+
+/* ---------- Scène ---------- */
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 300);
+camera.position.set(0.5, 6, 24);
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.enablePan = false;
+controls.minDistance = 5; controls.maxDistance = 60; controls.maxPolarAngle = Math.PI * 0.62;
+controls.target.set(0.5, 1, 0);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a9a8a, 0.85));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(6, 12, 9); scene.add(sun);
+const rim = new THREE.DirectionalLight(0xdfffe6, 0.3); rim.position.set(-8, 4, -8); scene.add(rim);
+
+const M = (color, o={}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness:0.55, metalness:0.02 }, o));
+const mats = {
+  plate: M(0xdfe9db, { roughness:0.9 }),
+  cell: M(0xf2b29a, { transparent:true, opacity:0.92 }),
+  cellK: M(0xe2a08c, { transparent:true, opacity:0.92 }),
+  villi: M(0xf6c3ad),
+  nucleus: M(0x9b6a8a),
+  membrane: M(0xd7846c),
+  transporter: M(0xd9962c, { emissive:0x4a2c00, emissiveIntensity:0.25 }),
+  blood: M(0xc8433f, { transparent:true, opacity:0.45, roughness:0.35 }),
+  bloodCore: M(0xa52d2b, { transparent:true, opacity:0.25 }),
+  tubule: M(0xf1e2a6, { transparent:true, opacity:0.22, roughness:0.2, side:THREE.DoubleSide, depthWrite:false }),
+  urine: M(0xf3d76a, { transparent:true, opacity:0.35, roughness:0.2, side:THREE.DoubleSide, depthWrite:false }),
+  kidney: M(0xb4524a, { roughness:0.45 }),
+  glomerulus: M(0xc9504a),
+  glucose: M(0x7651ad, { emissive:0x2a1450, emissiveIntensity:0.35, roughness:0.35 }),
+  drug: M(0x2f8a4a, { emissive:0x0d3a1a, emissiveIntensity:0.4, roughness:0.35 }),
+  capsA: M(0xe9dcc0, { roughness:0.3 }),
+  capsB: M(0x1c6a39, { roughness:0.3 }),
+  x: new THREE.MeshBasicMaterial({ color:0xcc352d })
+};
+
+function applyTheme(){
+  scene.background = new THREE.Color(css('--stage') || '#eef4ec');
+  mats.plate.color.set(css('--plate') || '#dfe9db');
+  mats.glucose.color.set(css('--violet') || '#7651ad');
+  mats.x.color.set(css('--red') || '#cc352d');
+}
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+
+const IX = -6.5, KX = 6.5;
+function plate(x){ const m = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.6, 0.2, 72), mats.plate); m.position.set(x, -2.4, 0); scene.add(m); }
+plate(IX); plate(KX + 0.6);
+
+/* ---------- Intestin ---------- */
+const intChannels = [];
+(function buildIntestine(){
+  const g = new THREE.Group(); g.position.x = IX; scene.add(g);
+  const cellGeo = new THREE.BoxGeometry(1.2, 1.7, 1.4, 1, 1, 1);
+  const villusGeo = new THREE.CylinderGeometry(0.045, 0.055, 0.32, 8);
+  const nucGeo = new THREE.SphereGeometry(0.22, 20, 16);
+  for (let i = 0; i < 5; i++){
+    const cx = (i - 2) * 1.28;
+    const cell = new THREE.Mesh(cellGeo, mats.cell); cell.position.set(cx, 0.35, 0); g.add(cell);
+    const mem = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.06, 1.4), mats.membrane); mem.position.set(cx, 1.21, 0); g.add(mem);
+    const nuc = new THREE.Mesh(nucGeo, mats.nucleus); nuc.position.set(cx, 0.0, 0.2); nuc.scale.set(1, 1.25, 1); g.add(nuc);
+    for (let a = 0; a < 5; a++) for (let b = 0; b < 5; b++){
+      const vx = cx - 0.48 + a * 0.24, vz = -0.56 + b * 0.28;
+      if (Math.abs(vx - cx) < 0.3 && Math.abs(vz) < 0.3) continue;
+      const v = new THREE.Mesh(villusGeo, mats.villi); v.position.set(vx, 1.4, vz); g.add(v);
+    }
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.07, 12, 28), mats.transporter);
+    ring.rotation.x = Math.PI / 2; ring.position.set(cx, 1.26, 0); g.add(ring);
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.45, 20, 1, true), mats.transporter);
+    tube.position.set(cx, 1.05, 0); g.add(tube);
+    intChannels.push({ x: IX + cx, y: 1.26, z: 0, dock: new THREE.Vector3(IX + cx, 1.38, 0), xPos: new THREE.Vector3(IX + cx, 1.78, 0.35) });
+  }
+  const vessel = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 7.4, 28, 1, true), mats.blood);
+  vessel.rotation.z = Math.PI / 2; vessel.position.set(0, -1.2, 0); g.add(vessel);
+  const core = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 7.4, 20), mats.bloodCore);
+  core.rotation.z = Math.PI / 2; core.position.set(0, -1.2, 0); g.add(core);
+})();
+
+/* ---------- Rein ---------- */
+const kidChannels = [];
+let urineCurve;
+(function buildKidney(){
+  const g = new THREE.Group(); g.position.x = KX; scene.add(g);
+  // Organe (forme de haricot)
+  const geo = new THREE.SphereGeometry(1, 56, 40); const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++){
+    let x = p.getX(i) * 0.66, y = p.getY(i), z = p.getZ(i) * 0.46;
+    const d = Math.exp(-(y * y) / 0.13);
+    if (x > 0) x -= 0.5 * d * (x / 0.66);
+    p.setXYZ(i, x, y, z);
+  }
+  geo.computeVertexNormals();
+  const kid = new THREE.Mesh(geo, mats.kidney); kid.scale.setScalar(1.25); kid.position.set(-1.6, 4.7, -2.4); kid.rotation.z = -0.2; g.add(kid);
+  // Glomérule
+  for (let i = 0; i < 14; i++){
+    const s = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), mats.glomerulus);
+    const a = i * 2.39, r = 0.18 + (i % 3) * 0.1;
+    s.position.set(-3.55 + Math.cos(a) * r, 1.6 + Math.sin(a) * r, Math.sin(a * 1.7) * 0.22); g.add(s);
+  }
+  // Tubule
+  const tub = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 6.2, 36, 1, true), mats.tubule);
+  tub.rotation.z = Math.PI / 2; tub.position.set(0, 1.6, 0); g.add(tub);
+  // Cellules tubulaires sous le tubule
+  for (let i = 0; i < 6; i++){
+    const c = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.8, 1.2), mats.cellK); c.position.set(-2.55 + i * 1.02, 0.62, 0); g.add(c);
+  }
+  [[-1.9,'SGLT2'],[-0.8,'SGLT2'],[1.6,'SGLT1']].forEach(([tx, kind]) => {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.07, 12, 28), mats.transporter);
+    ring.rotation.x = Math.PI / 2; ring.position.set(tx, 1.04, 0); g.add(ring);
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.5, 20, 1, true), mats.transporter); t.position.set(tx, 0.8, 0); g.add(t);
+    kidChannels.push({ kind, x: KX + tx, dock: new THREE.Vector3(KX + tx, 1.16, 0), xPos: new THREE.Vector3(KX + tx, 1.6, 0.75) });
+  });
+  // Capillaire
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 7.2, 28, 1, true), mats.blood);
+  cap.rotation.z = Math.PI / 2; cap.position.set(0, -0.6, 0); g.add(cap);
+  const capCore = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 7.2, 20), mats.bloodCore);
+  capCore.rotation.z = Math.PI / 2; capCore.position.set(0, -0.6, 0); g.add(capCore);
+  // Vers les urines
+  urineCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(KX + 3.1, 1.6, 0), new THREE.Vector3(KX + 3.9, 1.35, 0),
+    new THREE.Vector3(KX + 4.35, 0.2, 0), new THREE.Vector3(KX + 4.35, -1.15, 0)
+  ]);
+  const ut = new THREE.Mesh(new THREE.TubeGeometry(urineCurve, 40, 0.3, 20, false), mats.tubule); scene.add(ut);
+  const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.95, 36, 20, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), mats.urine);
+  bowl.position.set(4.35, -1.25, 0); g.add(bowl);
+})();
+
+/* ---------- Gélule ---------- */
+const capsule = new THREE.Group(); capsule.position.set(0, 2.8, 0); scene.add(capsule);
+(function(){
+  const h = 0.62, r = 0.34;
+  const a = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 32), mats.capsA); a.position.y = h / 2; capsule.add(a);
+  const a2 = new THREE.Mesh(new THREE.SphereGeometry(r, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), mats.capsA); a2.position.y = h; capsule.add(a2);
+  const b = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.03, r * 1.03, h, 32), mats.capsB); b.position.y = -h / 2; capsule.add(b);
+  const b2 = new THREE.Mesh(new THREE.SphereGeometry(r * 1.03, 32, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), mats.capsB); b2.position.y = -h; capsule.add(b2);
+  capsule.rotation.z = 0.5;
+})();
+
+/* ---------- Inhibiteurs (vont de la gélule vers chaque transporteur) ---------- */
+const drugGeo = new THREE.SphereGeometry(0.17, 20, 14);
+const xGeo = new THREE.BoxGeometry(0.62, 0.12, 0.04);
+const blockers = [];
+function makeBlocker(ch, delay){
+  const m = new THREE.Mesh(drugGeo, mats.drug); m.scale.set(1.3, 0.75, 1.3); scene.add(m);
+  const xg = new THREE.Group();
+  const x1 = new THREE.Mesh(xGeo, mats.x); x1.rotation.z = Math.PI / 4;
+  const x2 = new THREE.Mesh(xGeo, mats.x); x2.rotation.z = -Math.PI / 4;
+  xg.add(x1, x2); xg.position.copy(ch.xPos); xg.scale.setScalar(0.001); scene.add(xg);
+  const b = { ch, m, xg, p:0, delay, docked:0 };
+  ch.blocker = b; blockers.push(b);
+}
+intChannels.forEach((c, i) => makeBlocker(c, 0.1 + i * 0.12));
+kidChannels.forEach((c, i) => makeBlocker(c, 0.25 + i * 0.15));
+
+/* ---------- Glucose ---------- */
+const gGeo = new THREE.SphereGeometry(0.1, 14, 10);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const intG = [], kidG = [];
+function spawnInt(o){ o.s = 0; o.pos.set(rnd(IX - 3, IX + 3), rnd(2.6, 4.2), rnd(-0.55, 0.55)); o.v.set(rnd(-.2, .2), rnd(-.5, -.2), 0); o.t = 0; o.ch = null; }
+for (let i = 0; i < 70; i++){ const m = new THREE.Mesh(gGeo, mats.glucose); scene.add(m); const o = { m, pos:m.position, v:new THREE.Vector3() }; spawnInt(o); o.pos.y = rnd(1.5, 4.2); intG.push(o); }
+function spawnKid(o){ o.s = 0; o.pos.set(KX - 3.55 + rnd(-.2, .2), 1.6 + rnd(-.25, .25), rnd(-.25, .25)); o.tried = 0; o.t = 0; o.sp = rnd(0.7, 1.05); }
+for (let i = 0; i < 48; i++){ const m = new THREE.Mesh(gGeo, mats.glucose); scene.add(m); const o = { m, pos:m.position, v:new THREE.Vector3() }; spawnKid(o); o.pos.x = rnd(KX - 3.5, KX + 3); kidG.push(o); }
+
+function stepInt(o, dt){
+  if (o.s === 0){ // dans la lumière intestinale
+    let best = intChannels[0], bd = 99;
+    for (const c of intChannels){ const d = Math.abs(c.x - o.pos.x); if (d < bd){ bd = d; best = c; } }
+    o.v.x += (best.x - o.pos.x) * (o.pos.y < 2.6 ? 0.9 : 0.15) * dt + rnd(-.4, .4) * dt;
+    o.v.z += (-o.pos.z) * 0.6 * dt;
+    o.v.y += -0.35 * dt; o.v.multiplyScalar(0.985);
+    o.pos.addScaledVector(o.v, dt);
+    if (o.pos.y > 4.3){ o.pos.y = 4.3; o.v.y = -Math.abs(o.v.y); }
+    o.pos.x = Math.max(IX - 3.2, Math.min(IX + 3.2, o.pos.x));
+    if (o.pos.y < 1.55){
+      const near = Math.abs(o.pos.x - best.x) < 0.24 && Math.abs(o.pos.z) < 0.3;
+      const pass = 0.95 - 0.8 * best.blocker.docked;
+      if (near && Math.random() < pass){ o.s = 1; o.t = 0; o.ch = best; o.from = o.pos.clone(); }
+      else { o.pos.y = 1.56; o.v.y = rnd(0.7, 1.4); o.v.x += rnd(-.6, .6); }
+    }
+  } else if (o.s === 1){ // traverse l'entérocyte
+    o.t += dt * 0.8;
+    const k = Math.min(o.t, 1);
+    o.pos.set(o.ch.x + (o.from.x - o.ch.x) * Math.max(0, 1 - k * 4), 1.5 - k * 2.45, o.from.z * (1 - k));
+    if (k >= 1){ o.s = 2; o.v.set(rnd(1, 1.5), 0, 0); }
+  } else if (o.s === 2){ // circulation sanguine
+    o.pos.y += (-1.2 + Math.sin(o.pos.x * 3) * 0.12 - o.pos.y) * 4 * dt;
+    o.pos.x += o.v.x * dt;
+    if (o.pos.x > IX + 3.7) spawnInt(o);
+  }
+}
+function stepKid(o, dt){
+  if (o.s === 0){ // filtrat dans le tubule
+    o.pos.x += o.sp * dt;
+    o.pos.y += (1.6 + Math.sin(o.pos.x * 2 + o.sp * 9) * 0.22 - o.pos.y) * 2 * dt;
+    for (let i = 0; i < kidChannels.length; i++){
+      const c = kidChannels[i]; const bit = 1 << i;
+      if (!(o.tried & bit) && o.pos.x >= c.x){
+        o.tried |= bit;
+        const pass = 0.62 - 0.55 * c.blocker.docked;
+        if (Math.random() < pass){ o.s = 1; o.t = 0; o.ch = c; o.from = o.pos.clone(); break; }
+      }
+    }
+    if (o.s === 0 && o.pos.x > KX + 3.1){ o.s = 3; o.t = 0; }
+  } else if (o.s === 1){ // réabsorption vers le sang
+    o.t += dt * 0.9; const k = Math.min(o.t, 1);
+    o.pos.set(o.ch.x + (o.from.x - o.ch.x) * (1 - Math.min(1, k * 3)), o.from.y - k * (o.from.y + 0.6), o.from.z * (1 - k));
+    if (k >= 1){ o.s = 2; }
+  } else if (o.s === 2){ // capillaire
+    o.pos.x -= 1.1 * dt; o.pos.y += (-0.6 + Math.sin(o.pos.x * 3) * 0.1 - o.pos.y) * 4 * dt;
+    if (o.pos.x < KX - 3.6) spawnKid(o);
+  } else if (o.s === 3){ // vers les urines
+    o.t += dt * 0.7; const k = Math.min(o.t, 1);
+    o.pos.copy(urineCurve.getPoint(k));
+    if (k >= 1){ o.s = 4; o.t = 0; o.rest = new THREE.Vector3(KX + 4.35 + rnd(-.55, .55), -1.75 + rnd(0, .35), rnd(-.45, .45)); }
+  } else if (o.s === 4){ // dans les urines
+    o.t += dt; o.pos.lerp(o.rest, Math.min(1, dt * 3));
+    if (o.t > 5) spawnKid(o);
+  }
+}
+
+/* ---------- Étiquettes ---------- */
+const LABELS = [
+  { t:'Intestin – SGLT1', p:[IX, 4.9, 0], c:'big', g:['ov','eff'] },
+  { t:'Rein – SGLT1 / SGLT2', p:[KX + 0.6, 3.1, 0.6], c:'big', g:['ov','eff'] },
+  { t:'Punisucrophage® (SGLT1 + SGLT2)', p:[0, 4.0, 0], c:'drug', g:['ov','eff','int','kid'] },
+  { t:'Glucose alimentaire', p:[IX - 2.4, 4.5, 0], g:['int'] },
+  { t:'SGLT1', p:[IX + 2.56, 1.95, 0.6], c:'tr', g:['int'] },
+  { t:'Entérocytes', p:[IX - 3.2, 0.35, 0.9], g:['int'] },
+  { t:'Circulation sanguine', p:[IX + 2.2, -1.2, 0.7], g:['int'] },
+  { t:'Rein', p:[KX - 1.6, 6.3, -2.4], g:['kid'] },
+  { t:'Glomérule', p:[KX - 3.55, 2.45, 0], g:['kid'] },
+  { t:'Tubule rénal', p:[KX + 0.4, 2.45, 0], g:['kid'] },
+  { t:'SGLT2', p:[KX - 1.35, 0.2, 0.9], c:'tr', g:['kid'] },
+  { t:'SGLT1', p:[KX + 1.6, 0.2, 0.9], c:'tr', g:['kid'] },
+  { t:'Circulation sanguine', p:[KX - 1.2, -1.35, 0.6], g:['kid'] },
+  { t:'Urines (glucosurie)', p:[KX + 4.35, -0.35, 0.9], g:['kid'] }
+].map(l => { const el = document.createElement('div'); el.className = 'lbl' + (l.c ? ' ' + l.c : ''); el.textContent = l.t; labelsEl.appendChild(el); return Object.assign(l, { el, v:new THREE.Vector3(...l.p) }); });
+const tmp = new THREE.Vector3();
+function placeLabels(w, h){
+  for (const l of LABELS){
+    const on = l.g.includes(step);
+    tmp.copy(l.v).project(camera);
+    const vis = on && tmp.z < 1 && Math.abs(tmp.x) < 0.9 && Math.abs(tmp.y) < 1.05;
+    l.el.style.opacity = vis ? 1 : 0;
+    if (vis) l.el.style.transform = `translate(${(tmp.x + 1) / 2 * w}px, ${(1 - tmp.y) / 2 * h}px) translate(-50%,-50%)`;
+  }
+}
+
+/* ---------- Caméra ---------- */
+const VIEWS = {
+  ov:  { pos:[0.5, 5.5, 19], tgt:[0.5, 1.2, 0] },
+  int: { pos:[IX + 0.4, 3.6, 10.5], tgt:[IX, 1.2, 0] },
+  kid: { pos:[KX + 1.2, 3.6, 12.5], tgt:[KX + 0.6, 1.6, 0] },
+  eff: { pos:[0.5, 8, 19], tgt:[0.5, 1.2, 0] }
+};
+let camAnim = null;
+function aspectScale(){ const a = camera.aspect; return Math.min(2.4, Math.max(1, 1.25 / a)); }
+function goView(key, instant){
+  const v = VIEWS[key], s = aspectScale();
+  const tgt = new THREE.Vector3(...v.tgt);
+  const pos = new THREE.Vector3(...v.pos).sub(tgt).multiplyScalar(s).add(tgt);
+  if (instant || reduce){ camera.position.copy(pos); controls.target.copy(tgt); camAnim = null; return; }
+  camAnim = { t:0, p0:camera.position.clone(), t0:controls.target.clone(), p1:pos, t1:tgt };
+}
+
+/* ---------- Interface ---------- */
+let step = 'ov', drugOn = false, drugT = 0;
+const narr = document.getElementById('narr');
+const drugBtn = document.getElementById('drug'), drugTxt = document.getElementById('drugTxt');
+const cards = [...document.querySelectorAll('.card')];
+function setDrug(on){
+  if (on === drugOn) return; drugOn = on; drugT = 0;
+  drugBtn.setAttribute('aria-pressed', on); drugTxt.textContent = 'Punisucrophage® : ' + (on ? 'actif' : 'inactif');
+}
+function setStep(k, instant){
+  step = k;
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.step === k));
+  const s = STEPS[k];
+  narr.innerHTML = `<div><h2>${s.h}</h2><p class="tag">${s.tag}</p>${s.p.map(x => `<p>${x}</p>`).join('')}</div><div class="box"><h3>${s.boxT}</h3>${s.box}</div>`;
+  cards.forEach(c => c.classList.toggle('lit', k === 'eff'));
+  goView(k, instant);
+}
+
+const TOUR = [
+  { step:'ov', on:false, t:2.5 }, { step:'ov', on:true, t:4 },
+  { step:'int', on:false, t:5 }, { step:'int', on:true, t:7 },
+  { step:'kid', on:false, t:5.5 }, { step:'kid', on:true, t:8 },
+  { step:'eff', on:true, t:6 }
+];
+let touring = !reduce, tourI = 0, tourT = 0;
+const playTxt = document.getElementById('playTxt'), playIc = document.getElementById('playIc');
+function setTouring(on){ touring = on; playTxt.textContent = on ? 'Pause visite guidée' : 'Lancer la visite guidée'; playIc.textContent = on ? '❚❚' : '▶'; }
+function applyTour(){ const s = TOUR[tourI]; if (s.step !== step) setStep(s.step); setDrug(s.on); }
+document.getElementById('play').addEventListener('click', () => { if (touring) setTouring(false); else { setTouring(true); tourT = 0; applyTour(); } });
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => { setTouring(false); setStep(b.dataset.step); }));
+drugBtn.addEventListener('click', () => { setTouring(false); setDrug(!drugOn); });
+canvas.addEventListener('pointerdown', () => { document.querySelector('.hint').hidden = true; camAnim = null; if (touring) setTouring(false); });
+canvas.addEventListener('wheel', () => { camAnim = null; if (touring) setTouring(false); }, { passive:true });
+
+/* ---------- Taille ---------- */
+let W = 1, H = 1;
+function resize(){
+  W = stageEl.clientWidth; H = stageEl.clientHeight;
+  renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix();
+}
+new ResizeObserver(() => { resize(); goView(step, true); }).observe(stageEl);
+resize();
+setTouring(touring);
+setStep('ov', true);
+if (touring) applyTour();
+
+/* ---------- Boucle ---------- */
+const clock = new THREE.Clock();
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const capPos = new THREE.Vector3(), mid = new THREE.Vector3();
+function frame(){
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const time = clock.elapsedTime;
+
+  if (touring){ tourT += dt; if (tourT > TOUR[tourI].t){ tourT = 0; tourI = (tourI + 1) % TOUR.length; applyTour(); } }
+  if (camAnim){
+    camAnim.t = Math.min(1, camAnim.t + dt / 1.6); const k = ease(camAnim.t);
+    camera.position.lerpVectors(camAnim.p0, camAnim.p1, k); controls.target.lerpVectors(camAnim.t0, camAnim.t1, k);
+    if (camAnim.t >= 1) camAnim = null;
+  }
+
+  capsule.rotation.y += dt * 0.6; capsule.position.y = 2.8 + Math.sin(time * 1.4) * 0.12;
+  drugT += dt;
+  capPos.copy(capsule.position);
+  for (const b of blockers){
+    const target = drugOn && drugT > b.delay ? 1 : 0;
+    b.p += Math.sign(target - b.p) * dt / 1.3; b.p = Math.max(0, Math.min(1, b.p));
+    const k = ease(b.p);
+    mid.copy(capPos).add(b.ch.dock).multiplyScalar(0.5); mid.y += 3.2;
+    const u = 1 - k;
+    b.m.position.set(
+      u * u * capPos.x + 2 * u * k * mid.x + k * k * b.ch.dock.x,
+      u * u * capPos.y + 2 * u * k * mid.y + k * k * b.ch.dock.y,
+      u * u * capPos.z + 2 * u * k * mid.z + k * k * b.ch.dock.z);
+    b.m.visible = b.p > 0.02;
+    b.docked += ((b.p > 0.98 ? 1 : 0) - b.docked) * Math.min(1, dt * 5);
+    const xs = Math.max(0.001, b.docked * (1 + Math.sin(time * 4) * 0.06));
+    b.xg.scale.setScalar(xs); b.xg.quaternion.copy(camera.quaternion);
+  }
+
+  for (const o of intG) stepInt(o, dt);
+  for (const o of kidG) stepKid(o, dt);
+
+  controls.update();
+  renderer.render(scene, camera);
+  placeLabels(W, H);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
