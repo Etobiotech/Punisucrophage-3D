@@ -37,7 +37,8 @@ h1 sup{ font-size:.38em; vertical-align:super }
 .kicker{ display:inline-block; background:var(--green); color:var(--on-green); font-family:var(--font-d); font-weight:700; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; padding:5px 10px; border-radius:4px; margin:0 }
 .lede{ max-width:68ch; color:var(--ink); margin:12px 0 0; font-size:16px }
 
-.stage{ position:relative; height:clamp(380px, 64vh, 680px); border-radius:14px; overflow:hidden; background:var(--stage); border:1px solid var(--line) }
+.stage{ display:flex; flex-direction:column; height:clamp(420px, 66vh, 700px); border-radius:14px; overflow:hidden; background:var(--stage); border:1px solid var(--line) }
+.view{ position:relative; flex:1 1 auto; min-height:0 }
 .stage canvas{ display:block; width:100%; height:100%; touch-action:none; cursor:grab }
 .stage canvas:active{ cursor:grabbing }
 #labels{ position:absolute; inset:0; pointer-events:none; overflow:hidden }
@@ -46,23 +47,21 @@ h1 sup{ font-size:.38em; vertical-align:super }
 .lbl.tr{ color:var(--amber); border-color:color-mix(in srgb, var(--amber) 45%, var(--line)); font-family:var(--font-d) }
 .lbl.drug{ background:var(--green); color:var(--on-green); border-color:var(--green); font-family:var(--font-d) }
 
-.hud{ position:absolute; top:12px; left:12px; right:12px; display:flex; justify-content:flex-end; align-items:flex-start; gap:10px; flex-wrap:wrap; pointer-events:none }
-.hud > *{ pointer-events:auto }
-.drugbar{ position:absolute; left:50%; bottom:max(16px, env(safe-area-inset-bottom, 0px)); transform:translateX(-50%); z-index:3; max-width:calc(100% - 24px) }
-.switch{ display:flex; align-items:center; gap:14px; background:var(--surface); border:2px solid var(--green); border-radius:999px; padding:10px 24px 10px 10px; font:700 18px/1.15 var(--font-d); color:var(--green); cursor:pointer; box-shadow:0 6px 20px rgba(20,60,35,.22); white-space:nowrap; transition:background .25s, color .25s }
-.switch .knob{ width:60px; height:34px; border-radius:999px; background:var(--plate); position:relative; transition:background .25s; flex:none }
-.switch .knob::after{ content:""; position:absolute; top:4px; left:4px; width:26px; height:26px; border-radius:50%; background:var(--surface); box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .25s }
+.hud{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 12px; border-bottom:1px solid var(--line); background:color-mix(in srgb, var(--surface) 55%, var(--stage)) }
+.switch{ display:flex; align-items:center; gap:10px; background:var(--surface); border:2px solid var(--green); border-radius:999px; padding:6px 16px 6px 6px; font:700 15px/1.15 var(--font-d); color:var(--green); cursor:pointer; box-shadow:0 3px 10px rgba(20,60,35,.16); max-width:100%; white-space:nowrap; transition:background .25s, color .25s }
+.switch .knob{ width:46px; height:26px; border-radius:999px; background:var(--plate); position:relative; transition:background .25s; flex:none }
+.switch .knob::after{ content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:var(--surface); box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .25s }
 .switch[aria-pressed="true"]{ background:var(--green); color:var(--on-green) }
 .switch[aria-pressed="true"] .knob{ background:var(--on-green) }
-.switch[aria-pressed="true"] .knob::after{ transform:translateX(26px); background:var(--green) }
+.switch[aria-pressed="true"] .knob::after{ transform:translateX(20px); background:var(--green) }
 .switch[aria-pressed="false"]{ animation:pulse 2s ease-in-out infinite }
-@keyframes pulse{ 0%,100%{ box-shadow:0 6px 20px rgba(20,60,35,.22), 0 0 0 0 color-mix(in srgb, var(--green) 45%, transparent) } 50%{ box-shadow:0 6px 20px rgba(20,60,35,.22), 0 0 0 10px color-mix(in srgb, var(--green) 0%, transparent) } }
+@keyframes pulse{ 0%,100%{ box-shadow:0 3px 10px rgba(20,60,35,.16), 0 0 0 0 color-mix(in srgb, var(--green) 45%, transparent) } 50%{ box-shadow:0 3px 10px rgba(20,60,35,.16), 0 0 0 8px color-mix(in srgb, var(--green) 0%, transparent) } }
 @media (prefers-reduced-motion: reduce){ .switch{ animation:none !important } }
 .switch:focus-visible, .tab:focus-visible, .play:focus-visible{ outline:2px solid var(--green); outline-offset:2px }
 .legend{ display:flex; gap:12px; flex-wrap:wrap; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:6px 10px; font-size:12px; color:var(--muted) }
 .legend span{ display:inline-flex; align-items:center; gap:6px }
 .dot{ width:10px; height:10px; border-radius:50%; display:inline-block }
-.hint{ position:absolute; left:12px; top:12px; font-size:11.5px; color:var(--muted); background:color-mix(in srgb, var(--surface) 80%, transparent); padding:2px 8px; border-radius:6px; pointer-events:none }
+.hint{ position:absolute; right:10px; top:8px; font-size:11.5px; color:var(--muted); background:color-mix(in srgb, var(--surface) 80%, transparent); padding:2px 8px; border-radius:6px; pointer-events:none }
 
 .bar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:14px 0 0 }
 .tabs{ display:flex; gap:6px; flex-wrap:wrap; flex:1 1 auto; min-width:0 }
@@ -106,7 +105,7 @@ footer{ margin-top:22px; padding-block:14px 26px; border-top:1px solid var(--lin
 footer p{ margin:0 0 4px; max-width:none; text-align:justify; hyphens:auto; -webkit-hyphens:auto }
 
 @media (max-width:860px){ .grid{ grid-template-columns:repeat(3, minmax(0,1fr)) } .narr{ grid-template-columns:minmax(0,1fr) } }
-@media (max-width:480px){ .hint{ display:none } .switch{ font-size:16px; padding:8px 18px 8px 8px; gap:10px } .grid{ grid-template-columns:repeat(2, minmax(0,1fr)) } .legend{ display:none } .stage{ height:clamp(360px, 70vh, 560px) } }
+@media (max-width:480px){ .hint{ display:none } .hud{ justify-content:center } .grid{ grid-template-columns:repeat(2, minmax(0,1fr)) } .legend{ display:none } .stage{ height:clamp(400px, calc(100vw + 70px), 72vh) } }
 </style>
 </head>
 <body>
@@ -119,10 +118,9 @@ footer p{ margin:0 0 4px; max-width:none; text-align:justify; hyphens:auto; -web
 </div></header>
 
 <main class="wrap" lang="fr">
-  <section class="stage" id="stage" aria-label="Animation 3D du mécanisme d'action">
-    <canvas id="c"></canvas>
-    <div id="labels"></div>
+  <section class="stage" aria-label="Animation 3D du mécanisme d'action">
     <div class="hud">
+      <button class="switch" id="drug" type="button" aria-pressed="false"><span class="knob"></span><span id="drugTxt">Activer Punisucrophage®</span></button>
       <div class="legend" aria-hidden="true">
         <span><i class="dot" style="background:var(--violet)"></i>Glucose</span>
         <span><i class="dot" style="background:var(--amber)"></i>Transporteur SGLT</span>
@@ -130,8 +128,11 @@ footer p{ margin:0 0 4px; max-width:none; text-align:justify; hyphens:auto; -web
         <span><b style="color:var(--red)">✕</b>Transporteur inhibé</span>
       </div>
     </div>
-    <div class="drugbar"><button class="switch" id="drug" type="button" aria-pressed="false"><span class="knob"></span><span id="drugTxt">Activer Punisucrophage®</span></button></div>
-    <div class="hint">Faites glisser pour tourner · molette ou pincement pour zoomer</div>
+    <div class="view" id="stage">
+      <canvas id="c"></canvas>
+      <div id="labels"></div>
+      <div class="hint">Faites glisser pour tourner · molette ou pincement pour zoomer</div>
+    </div>
   </section>
 
   <div class="bar">
@@ -204,7 +205,7 @@ const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 300);
 camera.position.set(0.5, 6, 24);
 const controls = new THREE.OrbitControls(camera, canvas);
 controls.enableDamping = true; controls.dampingFactor = 0.08; controls.enablePan = false;
-controls.minDistance = 5; controls.maxDistance = 60; controls.maxPolarAngle = Math.PI * 0.62;
+controls.minDistance = 5; controls.maxDistance = 120; controls.maxPolarAngle = Math.PI * 0.62;
 controls.target.set(0.5, 1, 0);
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0x8a9a8a, 0.85));
@@ -244,13 +245,14 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
 
 const IX = -6.5, KX = 6.5;
-function plate(x){ const m = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.6, 0.2, 72), mats.plate); m.position.set(x, -2.4, 0); scene.add(m); }
-plate(IX); plate(KX + 0.6);
+const ST = { int:[], kid:[] };
+function plate(x){ const m = new THREE.Mesh(new THREE.CylinderGeometry(4.7, 4.8, 0.2, 72), mats.plate); m.position.set(x, -2.4, 0); scene.add(m); return m; }
+ST.int.push(plate(IX)); ST.kid.push(plate(KX + 0.6));
 
 /* ---------- Intestin ---------- */
 const intChannels = [];
 (function buildIntestine(){
-  const g = new THREE.Group(); g.position.x = IX; scene.add(g);
+  const g = new THREE.Group(); g.position.x = IX; scene.add(g); ST.int.push(g);
   const cellGeo = new THREE.BoxGeometry(1.2, 1.7, 1.4, 1, 1, 1);
   const villusGeo = new THREE.CylinderGeometry(0.045, 0.055, 0.32, 8);
   const nucGeo = new THREE.SphereGeometry(0.22, 20, 16);
@@ -280,7 +282,7 @@ const intChannels = [];
 const kidChannels = [];
 let urineCurve;
 (function buildKidney(){
-  const g = new THREE.Group(); g.position.x = KX; scene.add(g);
+  const g = new THREE.Group(); g.position.x = KX; scene.add(g); ST.kid.push(g);
   // Organe (forme de haricot)
   const geo = new THREE.SphereGeometry(1, 56, 40); const p = geo.attributes.position;
   for (let i = 0; i < p.count; i++){
@@ -320,7 +322,7 @@ let urineCurve;
     new THREE.Vector3(KX + 3.1, 1.6, 0), new THREE.Vector3(KX + 3.9, 1.35, 0),
     new THREE.Vector3(KX + 4.35, 0.2, 0), new THREE.Vector3(KX + 4.35, -1.15, 0)
   ]);
-  const ut = new THREE.Mesh(new THREE.TubeGeometry(urineCurve, 40, 0.3, 20, false), mats.tubule); scene.add(ut);
+  const ut = new THREE.Mesh(new THREE.TubeGeometry(urineCurve, 40, 0.3, 20, false), mats.tubule); scene.add(ut); ST.kid.push(ut);
   const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.95, 36, 20, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), mats.urine);
   bowl.position.set(4.35, -1.25, 0); g.add(bowl);
 })();
@@ -347,7 +349,7 @@ function makeBlocker(ch, delay){
   const x2 = new THREE.Mesh(xGeo, mats.x); x2.rotation.z = -Math.PI / 4;
   xg.add(x1, x2); xg.position.copy(ch.xPos); xg.scale.setScalar(0.001); scene.add(xg);
   const b = { ch, m, xg, p:0, delay, docked:0 };
-  ch.blocker = b; blockers.push(b);
+  ch.blocker = b; blockers.push(b); b.st = intChannels.includes(ch) ? 'int' : 'kid';
 }
 intChannels.forEach((c, i) => makeBlocker(c, 0.1 + i * 0.12));
 kidChannels.forEach((c, i) => makeBlocker(c, 0.25 + i * 0.15));
@@ -418,11 +420,20 @@ function stepKid(o, dt){
   }
 }
 
+/* ---------- Affichage par vue ---------- */
+const stationOn = { int:true, kid:true };
+function setStations(key){
+  stationOn.int = key !== 'kid'; stationOn.kid = key !== 'int';
+  ST.int.forEach(o => o.visible = stationOn.int); ST.kid.forEach(o => o.visible = stationOn.kid);
+  intG.forEach(o => o.m.visible = stationOn.int); kidG.forEach(o => o.m.visible = stationOn.kid);
+  capsule.visible = key === 'ov' || key === 'eff';
+}
+
 /* ---------- Étiquettes ---------- */
 const LABELS = [
-  { t:'Intestin – SGLT1', p:[IX, 4.9, 0], c:'big', g:['ov','eff'] },
-  { t:'Rein – SGLT1 / SGLT2', p:[KX + 0.6, 3.1, 0.6], c:'big', g:['ov','eff'] },
-  { t:'Punisucrophage® (SGLT1 + SGLT2)', p:[0, 4.0, 0], c:'drug', g:['ov','eff','int','kid'] },
+  { t:'Intestin – SGLT1', p:[IX, -2.6, 4.9], c:'big', g:['ov','eff'] },
+  { t:'Rein – SGLT1 / SGLT2', p:[KX + 0.6, -2.6, 4.9], c:'big', g:['ov','eff'] },
+  { t:'Punisucrophage® (SGLT1 + SGLT2)', p:[0, 4.0, 0], c:'drug', g:['ov','eff'] },
   { t:'Glucose alimentaire', p:[IX - 2.4, 4.5, 0], g:['int'] },
   { t:'SGLT1', p:[IX + 2.56, 1.95, 0.6], c:'tr', g:['int'] },
   { t:'Entérocytes', p:[IX - 3.2, 0.35, 0.9], g:['int'] },
@@ -440,25 +451,60 @@ function placeLabels(w, h){
   for (const l of LABELS){
     const on = l.g.includes(step);
     tmp.copy(l.v).project(camera);
-    const vis = on && tmp.z < 1 && Math.abs(tmp.x) < 0.9 && Math.abs(tmp.y) < 1.05;
+    const vis = on && tmp.z < 1 && Math.abs(tmp.x) < 1.2 && Math.abs(tmp.y) < 1.2;
     l.el.style.opacity = vis ? 1 : 0;
-    if (vis) l.el.style.transform = `translate(${(tmp.x + 1) / 2 * w}px, ${(1 - tmp.y) / 2 * h}px) translate(-50%,-50%)`;
+    if (vis){
+      const lw = l.el.offsetWidth, lh = l.el.offsetHeight;
+      const x = Math.min(w - lw / 2 - 4, Math.max(lw / 2 + 4, (tmp.x + 1) / 2 * w));
+      const y = Math.min(h - lh / 2 - 4, Math.max(lh / 2 + 4, (1 - tmp.y) / 2 * h));
+      l.el.style.transform = `translate(${x}px, ${y}px) translate(-50%,-50%)`;
+    }
   }
 }
 
 /* ---------- Caméra ---------- */
-const VIEWS = {
-  ov:  { pos:[0.5, 5.5, 19], tgt:[0.5, 1.2, 0] },
-  int: { pos:[IX + 0.4, 3.6, 10.5], tgt:[IX, 1.2, 0] },
-  kid: { pos:[KX + 1.2, 3.6, 12.5], tgt:[KX + 0.6, 1.6, 0] },
-  eff: { pos:[0.5, 8, 19], tgt:[0.5, 1.2, 0] }
+// Chaque vue : direction de la caméra. Le cadrage est calculé pour que tout ce qui est affiché tienne à l'écran.
+const VIEWS = { ov:{ dir:[0, 0.3, 1] }, int:{ dir:[0.04, 0.22, 1] }, kid:{ dir:[0.06, 0.22, 1] }, eff:{ dir:[0, 0.3, 1] } };
+const EXTRA = { // zones où circulent les particules
+  int:[[IX - 3.2, 4.4, 0.6], [IX + 3.2, 4.4, -0.6], [IX - 3.2, 1.5, 0.6], [IX + 3.7, -1.7, 0.6]],
+  kid:[[KX - 3.8, 1.6, 0.4], [KX + 5.3, -1.8, 0.95], [KX + 5.3, -2.2, -0.95]]
 };
+const fitCam = new THREE.PerspectiveCamera();
+const _b = new THREE.Box3(), _v = new THREE.Vector3();
+function fitPoints(key){
+  const objs = key === 'int' ? ST.int : key === 'kid' ? ST.kid : [...ST.int, ...ST.kid, capsule];
+  const pts = [];
+  objs.forEach(o => o.traverse(m => { if (!m.isMesh) return; _b.setFromObject(m);
+    for (const x of [_b.min.x, _b.max.x]) for (const y of [_b.min.y, _b.max.y]) for (const z of [_b.min.z, _b.max.z]) pts.push(new THREE.Vector3(x, y, z)); }));
+  (key === 'int' ? EXTRA.int : key === 'kid' ? EXTRA.kid : [...EXTRA.int, ...EXTRA.kid]).forEach(p => pts.push(new THREE.Vector3(...p)));
+  LABELS.forEach(l => { if (l.g.includes(key)) pts.push(l.v.clone()); });
+  return pts;
+}
+function extent(pts, tgt, dir, d){
+  fitCam.position.copy(dir).multiplyScalar(d).add(tgt); fitCam.lookAt(tgt); fitCam.updateMatrixWorld();
+  let x0 = 9, x1 = -9, y0 = 9, y1 = -9;
+  for (const p of pts){ _v.copy(p).project(fitCam); x0 = Math.min(x0, _v.x); x1 = Math.max(x1, _v.x); y0 = Math.min(y0, _v.y); y1 = Math.max(y1, _v.y); }
+  return { x0, x1, y0, y1 };
+}
+function fitView(key){
+  fitCam.fov = camera.fov; fitCam.aspect = camera.aspect; fitCam.near = 0.1; fitCam.far = 400; fitCam.updateProjectionMatrix();
+  const pts = fitPoints(key), dir = new THREE.Vector3(...VIEWS[key].dir).normalize();
+  const tgt = new THREE.Box3().setFromPoints(pts).getCenter(new THREE.Vector3());
+  const mx = 0.9, my = 0.86; let d = 30;
+  for (let pass = 0; pass < 3; pass++){
+    let lo = 3, hi = 400;
+    for (let i = 0; i < 40; i++){ d = (lo + hi) / 2; const e = extent(pts, tgt, dir, d); (Math.max(-e.x0, e.x1) <= mx && Math.max(-e.y0, e.y1) <= my) ? hi = d : lo = d; }
+    d = hi; const e = extent(pts, tgt, dir, d);
+    const right = new THREE.Vector3().setFromMatrixColumn(fitCam.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(fitCam.matrixWorld, 1);
+    const hh = d * Math.tan(THREE.MathUtils.degToRad(fitCam.fov) / 2), hw = hh * fitCam.aspect;
+    tgt.addScaledVector(right, (e.x0 + e.x1) / 2 * hw).addScaledVector(up, (e.y0 + e.y1) / 2 * hh);
+  }
+  return { pos: dir.clone().multiplyScalar(d).add(tgt), tgt };
+}
 let camAnim = null;
-function aspectScale(){ const a = camera.aspect; return Math.min(2.4, Math.max(1, 1.25 / a)); }
 function goView(key, instant){
-  const v = VIEWS[key], s = aspectScale();
-  const tgt = new THREE.Vector3(...v.tgt);
-  const pos = new THREE.Vector3(...v.pos).sub(tgt).multiplyScalar(s).add(tgt);
+  setStations(key);
+  const { pos, tgt } = fitView(key);
   if (instant || reduce){ camera.position.copy(pos); controls.target.copy(tgt); camAnim = null; return; }
   camAnim = { t:0, p0:camera.position.clone(), t0:controls.target.clone(), p1:pos, t1:tgt };
 }
@@ -566,7 +612,8 @@ function frame(){
       u * u * capPos.x + 2 * u * k * mid.x + k * k * b.ch.dock.x,
       u * u * capPos.y + 2 * u * k * mid.y + k * k * b.ch.dock.y,
       u * u * capPos.z + 2 * u * k * mid.z + k * k * b.ch.dock.z);
-    b.m.visible = b.p > 0.02;
+    const shown = stationOn[b.st];
+    b.m.visible = shown && b.p > 0.02; b.xg.visible = shown;
     b.docked += ((b.p > 0.98 ? 1 : 0) - b.docked) * Math.min(1, dt * 5);
     const xs = Math.max(0.001, b.docked * (1 + Math.sin(time * 4) * 0.06));
     b.xg.scale.setScalar(xs); b.xg.quaternion.copy(camera.quaternion);
@@ -578,6 +625,7 @@ function frame(){
   controls.update();
   renderer.render(scene, camera);
   placeLabels(W, H);
+  window.__p3d = { camera, scene, LABELS, W, H };
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
